@@ -1,5 +1,7 @@
-#![feature(plugin)]
+#![feature(env)]
 #![feature(io)]
+#![feature(os)]
+#![feature(plugin)]
 
 #[plugin]
 #[macro_use]
