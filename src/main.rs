@@ -8,14 +8,13 @@ extern crate rustful_macros;
 
 extern crate rustful;
 
+use std::env;
 use std::error::Error;
 use std::old_io::process::Command;
 
 use rustful::{Server, Context, Response, TreeRouter};
 use rustful::Method::{Get, Post};
 use rustful::StatusCode::{InternalServerError, BadRequest};
-
-static PROGRAM: &'static str = "wc";
 
 fn get_hello(_: Context, response: Response) {
     try_send!(
@@ -26,6 +25,12 @@ fn get_hello(_: Context, response: Response) {
 }
 
 fn post_data(context: Context, mut response: Response) {
+    let runner = match env::args().nth(1) {
+        Some(arg) => arg.into_string().unwrap(),
+        None => "wc".to_string(),
+    };
+    // let runner = if args.len() > 1 { &*args[1] } else { "wc" };
+
     let mut body_reader = context.body_reader;
     let data = match body_reader.read_to_end() {
         Ok(body) => body,
@@ -36,11 +41,11 @@ fn post_data(context: Context, mut response: Response) {
         }
     };
 
-    let mut process = match Command::new(PROGRAM).spawn() {
+    let mut process = match Command::new(&*runner).spawn() {
         Ok(process) => process,
         Err(why) => {
             response.set_status(InternalServerError);
-            try_send!(response.into_writer(), format!("Could not spawn {}: {}", PROGRAM, why.description()));
+            try_send!(response.into_writer(), format!("Could not spawn {}: {}", runner, why.description()));
             return;
         }
     };
@@ -51,10 +56,10 @@ fn post_data(context: Context, mut response: Response) {
         //   Really, std:io needs to stabilize so we can move away from std:old_io
         let mut child_stdin = process.stdin.take().unwrap();
         match child_stdin.write_all(&*data) {
-            Ok(_) => println!("Sending input data to {}...", PROGRAM),
+            Ok(_) => println!("Sending input data to {}...", runner),
             Err(why) => {
                 response.set_status(InternalServerError);
-                try_send!(response.into_writer(), format!("Could not write to {} stdin: {}", PROGRAM, why.description()));
+                try_send!(response.into_writer(), format!("Could not write to {} stdin: {}", runner, why.description()));
                 return;
             }
         }
@@ -63,12 +68,12 @@ fn post_data(context: Context, mut response: Response) {
     // Let's do something with stdout
     match process.stdout.as_mut().unwrap().read_to_string() {
         Ok(output) => {
-            print!("{} responded with:\n{}", PROGRAM, output);
-            try_send!(response.into_writer(), format!("Words counted: {}!", output), "reading stdout");
+            println!("{} responded with:\n{}", runner, output);
+            try_send!(response.into_writer(), format!("{} output: {}!", runner, output), "reading stdout");
         },
         Err(why) => {
             response.set_status(InternalServerError);
-            try_send!(response.into_writer(), format!("Could not read {} stdout: {}", PROGRAM, why.description()));
+            try_send!(response.into_writer(), format!("Could not read {} stdout: {}", runner, why.description()));
             return;
         }
     }
