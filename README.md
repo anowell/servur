@@ -1,7 +1,7 @@
 # Arest Proof-of-Concept
-A simple RESTish server for running other processes
+A simple RESTish server for running other processes with data posted to `/data`
 
-It's not particularly interesting alone, rather intended to be built on top of for language/framework specific implementations (e.g. [arest-ruby](https://github.com/anowell/arest-ruby))
+It's not particularly interesting alone, since the default "runner" that processes the data is simply `wc`. This becomes interesting when you build a flexible language/framework specific runner on top of this container (e.g. [arest-ruby](https://github.com/anowell/arest-ruby))
 
 [![Build Status](https://travis-ci.org/anowell/arest.svg)](https://travis-ci.org/anowell/arest)
 
