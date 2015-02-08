@@ -12,11 +12,11 @@ It's not particularly interesting alone, rather intended to be built on top of f
 
 # Running it
 
-   $ docker run -p 8080:8080 arest
-   $ curl -s localhost:8080/data -XPOST -d"
-       An old silent pond...
-       A frog jumps into the pond,
-       splash! Silence again.
-       "
-   Words counted:       4      13     102
+    $ docker run -p 8080:8080 arest
+    $ curl -s localhost:8080/data -XPOST -d"
+        An old silent pond...
+        A frog jumps into the pond,
+        splash! Silence again.
+        "
+    Words counted:       4      13     102
 
