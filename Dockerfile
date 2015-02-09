@@ -7,7 +7,7 @@ RUN apt-get update && \
 RUN groupadd -r arunner && useradd -m -g arunner arunner
 
 ENV AREST_VERSION 0.1.1
-RUN curl -o /bin/arest.gz https://github.com/anowell/arest/releases/download/v$AREST_VERSION/arest.gz && \
+RUN curl -Lo /bin/arest.gz https://github.com/anowell/arest/releases/download/v$AREST_VERSION/arest.gz && \
     gunzip /bin/arest.gz && \
     chmod 755 /bin/arest
 
