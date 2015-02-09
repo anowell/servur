@@ -5,18 +5,20 @@ It's not particularly interesting alone, since the default "runner" that process
 
 [![Build Status](https://travis-ci.org/anowell/arest.svg)](https://travis-ci.org/anowell/arest)
 
-## Build
+## Usage
 
-    cargo build
-    docker build -t arest .
+The docker image is published to [anowell/arest](https://registry.hub.docker.com/u/anowell/arest/) on the Docker Hub.
 
-# Running it
-
-    $ docker run -p 8080:8080 arest
+    $ docker run -p 8080:8080 anowell/arest
     $ curl -s localhost:8080/data -XPOST -d"
         An old silent pond...
         A frog jumps into the pond,
         splash! Silence again.
         "
-    Words counted:       4      13     102
+    wc output:       4      13     102
+
+## Building
+
+    cargo build
+    docker build .
 
