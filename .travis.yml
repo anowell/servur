@@ -1,9 +1,14 @@
 language: rust
 
+script:
+  - cargo build --verbose
+  - cargo test --verbose
+  - gzip target/arest
+
 deploy:
   provider: releases
   api-key: $GITHUB_API_TOKEN
-  file: "target/arest"
+  file: "target/arest.gz"
   skip_cleanup: true
   on:
     tags: true
