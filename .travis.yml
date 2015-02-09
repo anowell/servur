@@ -7,6 +7,7 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
+    all_branches: true
 
 after_deploy:
   - curl --data "build=true" -X POST https://registry.hub.docker.com/u/anowell/arest/trigger/$DOCKER_HUB_TOKEN/
