@@ -5,6 +5,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 RUN groupadd -r arunner && useradd -m -g arunner arunner
+ADD ship /bin/ship
 
 ENV AREST_VERSION 0.1.1
 RUN curl -Lo /bin/arest.gz https://github.com/anowell/arest/releases/download/v$AREST_VERSION/arest.gz && \
@@ -12,7 +13,4 @@ RUN curl -Lo /bin/arest.gz https://github.com/anowell/arest/releases/download/v$
     chmod 755 /bin/arest
 
 EXPOSE 8080
-ENTRYPOINT ["/bin/arest"]
-# TODO: EntryPoint needs to become a script that supports:
-# 1) Pre-init (e.g. /etc/preinit.d/*) for dependency loading
-# 2) Starting the arest server
+ENTRYPOINT ["/bin/ship"]
