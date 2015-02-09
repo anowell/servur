@@ -1,1 +1,12 @@
 language: rust
+
+deploy:
+  provider: releases
+  api-key: $GITHUB_API_TOKEN
+  file: "target/arest"
+  skip_cleanup: true
+  on:
+    tags: true
+
+after_deploy:
+  - curl --data "build=true" -X POST https://registry.hub.docker.com/u/anowell/arest/trigger/$DOCKER_HUB_TOKEN/
