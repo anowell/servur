@@ -1,104 +1,86 @@
 #![feature(env)]
 #![feature(io)]
 #![feature(os)]
-#![feature(plugin)]
+#![feature(libc)]
 
-#[plugin]
-#[macro_use]
-#[no_link]
-extern crate rustful_macros;
-
-extern crate rustful;
+extern crate nickel;
+extern crate libc;
 
 use std::env;
-use std::error::Error;
-use std::old_io::process::Command;
+use std::old_io;
+use std::old_io::net::ip::Ipv4Addr;
+use std::error::FromError;
+use std::sync::{Arc,Mutex};
+use nickel::router::http_router::HttpRouter;
+use nickel::{Nickel, Request, Response};
+use libc::pid_t;
 
-use rustful::{Server, Context, Response, TreeRouter};
-use rustful::Method::{Get, Post};
-use rustful::StatusCode::{InternalServerError, BadRequest};
+mod controller;
 
-fn get_hello(_: Context, response: Response) {
-    try_send!(
-        response.into_writer(),
-        "Arest is alive and well!",
-        "calling get_hello"
-    );
+//
+// Error Handling
+//
+#[derive(Debug)]
+pub enum ArestError {
+    IoError(old_io::IoError),
 }
 
-fn post_data(context: Context, mut response: Response) {
-    let runner = match env::args().nth(1) {
-        Some(arg) => arg.into_string().unwrap(),
-        None => "wc".to_string(),
-    };
-    // let runner = if args.len() > 1 { &*args[1] } else { "wc" };
-
-    let mut body_reader = context.body_reader;
-    let data = match body_reader.read_to_end() {
-        Ok(body) => body,
-        Err(why) => {
-            response.set_status(BadRequest);
-            try_send!(response.into_writer(), format!("couldn't read request body: {}", why.description()));
-            return;
-        }
-    };
-
-    let mut process = match Command::new(&*runner).spawn() {
-        Ok(process) => process,
-        Err(why) => {
-            response.set_status(InternalServerError);
-            try_send!(response.into_writer(), format!("Could not spawn {}: {}", runner, why.description()));
-            return;
-        }
-    };
-
-    {
-        // Would be nice to have method like std::io::copy for Reader/Writer
-        //   std::io::copy(&mut body_reader, &mut child_stdout)
-        //   Really, std:io needs to stabilize so we can move away from std:old_io
-        let mut child_stdin = process.stdin.take().unwrap();
-        match child_stdin.write_all(&*data) {
-            Ok(_) => println!("Sending input data to {}...", runner),
-            Err(why) => {
-                response.set_status(InternalServerError);
-                try_send!(response.into_writer(), format!("Could not write to {} stdin: {}", runner, why.description()));
-                return;
-            }
-        }
+impl FromError<old_io::IoError> for ArestError {
+    fn from_error(err: old_io::IoError) -> ArestError {
+        ArestError::IoError(err)
     }
+}
 
-    // Let's do something with stdout
-    match process.stdout.as_mut().unwrap().read_to_string() {
-        Ok(output) => {
-            println!("{} responded with:\n{}", runner, output);
-            try_send!(response.into_writer(), format!("{} output: {}!", runner, output), "reading stdout");
-        },
-        Err(why) => {
-            response.set_status(InternalServerError);
-            try_send!(response.into_writer(), format!("Could not read {} stdout: {}", runner, why.description()));
-            return;
-        }
+
+//
+// Shared Application State
+//
+#[derive(Clone)]
+struct Application {
+    runner: String,
+    pid: Arc<Mutex<Option<pid_t>>>
+}
+
+impl Application {
+    fn set_pid(&self, pid: Option<pid_t>) {
+        let mut shared_pid = self.pid.lock().unwrap();
+        *shared_pid = pid;
     }
+}
 
+
+fn usage() {
+    println!("Usage: arest PROGRAM");
+    println!("  where PROGRAM is th executable to run on POST to /data");
+    env::set_exit_status(1);
 }
 
 fn main() {
-    let router = TreeRouter::from_routes(
-        vec![
-            // The clumsy fn ptr cast is waiting on a compiler fix to address fn coersion
-            (Get,   "/",        get_hello   as fn(Context, Response)),
-            (Post,  "/data",    post_data   as fn(Context, Response)),
-            // (Get,   "/status",  get_status  as fn(Context, Response)),
-            // (Post,  "/interrupt",            post_interrupt   as fn(Context, Response)),
-            // (Post,  "/interrupt/:signal",    post_interrupt   as fn(Context, Response)),
-        ]
-    );
-
     let port = 8080;
-    let server_result = Server::new().port(port).handlers(router).run();
+    let runner: String = match env::args().nth(1) {
+        Some(arg) => arg.into_string().unwrap().clone(),
+        None => { usage(); return; }
+    };
 
-    match server_result {
-        Ok(_server) => println!("Listening on port {}", port),
-        Err(e) => println!("Could not start server: {}", e.description())
-    }
+    // Convenience types
+    type ReqHandler = fn(&Request, &mut Response);
+    type AppHandler = fn(&Request, &mut Response, &Application);
+
+    // Initialize server and application state
+    let mut server = Nickel::new();
+    let app = Application{ runner: runner, pid: Arc::new(Mutex::new(None)) };
+
+    // Helpers to create routes: stateless (req_handler) and stateful (app_handler)
+    let req_handler = |fn_ptr: ReqHandler| { fn_ptr };
+    let app_handler = |fn_ptr: AppHandler| { (fn_ptr, app.clone()) };
+
+    // App routing
+    server.get("/",                     req_handler(controller::get_hello));
+    server.get("/status",               app_handler(controller::get_status));
+    server.post("/data",                app_handler(controller::post_data));
+    server.post("/signal/:signal",      app_handler(controller::post_signal));
+
+    // Start the server
+    println!("Listening on port {}", port);
+    server.listen(Ipv4Addr(127, 0, 0, 1), port);
 }
