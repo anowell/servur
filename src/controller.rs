@@ -3,7 +3,7 @@ extern crate libc;
 
 use ::{Application, ArestError};
 use nickel::{Request, Response};
-// use std::thread::Thread;
+use std::thread::Thread;
 use std::old_io::process::{Process, Command, ProcessExit};
 
 pub fn get_hello(_: &Request, response: &mut Response) {
@@ -84,7 +84,8 @@ pub fn post_data(request: &Request, response: &mut Response, app: &Application) 
             response.send(message);
         },
         Ok(mut child) =>  {
-            // Thread::spawn(|| {
+            response.status_code(http::status::Accepted);
+            Thread::spawn(move || {
                 loop {
                     // This is how we stream the stdout pipe: a chunk every PIPE_INTERVAL
                     child.set_timeout(Some(PIPE_INTERVAL));
@@ -106,9 +107,7 @@ pub fn post_data(request: &Request, response: &mut Response, app: &Application) 
                         }
                     }
                 }
-            // });
-
-
+            });
         },
     };
 

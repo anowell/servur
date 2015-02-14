@@ -2,6 +2,7 @@
 #![feature(io)]
 #![feature(os)]
 #![feature(libc)]
+#![feature(std_misc)]
 
 extern crate nickel;
 extern crate libc;
