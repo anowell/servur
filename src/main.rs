@@ -6,6 +6,8 @@
 
 extern crate nickel;
 extern crate libc;
+extern crate time;
+extern crate "rustc-serialize" as rustc_serialize;
 
 use std::env;
 use std::old_io;
@@ -14,6 +16,7 @@ use std::error::FromError;
 use std::sync::{Arc,Mutex};
 use nickel::router::http_router::HttpRouter;
 use nickel::{Nickel, Request, Response};
+// use rustc_serialize::json;
 use libc::pid_t;
 
 mod controller;
@@ -39,13 +42,26 @@ impl FromError<old_io::IoError> for ArestError {
 #[derive(Clone)]
 struct Application {
     runner: String,
-    pid: Arc<Mutex<Option<pid_t>>>
+    pid: Arc<Mutex<Option<pid_t>>>,
+}
+
+#[derive(Clone, RustcEncodable)]
+struct Status {
+    runner: String,
+    pid: Option<pid_t>
 }
 
 impl Application {
     fn set_pid(&self, pid: Option<pid_t>) {
         let mut shared_pid = self.pid.lock().unwrap();
         *shared_pid = pid;
+    }
+
+    fn read_status(&self) -> Status {
+        Status {
+            runner: self.runner.clone(),
+            pid: self.pid.lock().unwrap().clone()
+        }
     }
 }
 
@@ -69,7 +85,11 @@ fn main() {
 
     // Initialize server and application state
     let mut server = Nickel::new();
-    let app = Application{ runner: runner, pid: Arc::new(Mutex::new(None)) };
+    let app = Application{
+        runner: runner,
+        pid: Arc::new(Mutex::new(None)),
+        // status: Arc::new(Mutex::new(Status{ pid: None, started: None })),
+    };
 
     // Helpers to create routes: stateless (req_handler) and stateful (app_handler)
     let req_handler = |fn_ptr: ReqHandler| { fn_ptr };

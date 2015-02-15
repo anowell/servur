@@ -4,6 +4,9 @@ version = "0.2.0"
 license = "MIT"
 authors = ["Anthony Nowell <anowell@gmail.com>"]
 
+[dependencies]
+rustc-serialize = "*"
+
 [dependencies.nickel]
 git = "https://github.com/nickel-org/nickel.rs.git"
 
