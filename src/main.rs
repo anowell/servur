@@ -1,12 +1,10 @@
 #![feature(env)]
 #![feature(io)]
-#![feature(os)]
 #![feature(libc)]
 #![feature(std_misc)]
 
 extern crate nickel;
 extern crate libc;
-extern crate time;
 extern crate "rustc-serialize" as rustc_serialize;
 
 use std::env;
@@ -75,7 +73,7 @@ fn usage() {
 fn main() {
     let port = 8080;
     let runner: String = match env::args().nth(1) {
-        Some(arg) => arg.into_string().unwrap().clone(),
+        Some(arg) => arg,
         None => { usage(); return; }
     };
 
