@@ -1,6 +1,6 @@
 [root]
 name = "servur"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "http 0.1.0-pre (git+https://github.com/nickel-org/rust-http.git)",
  "nickel 0.1.0 (git+https://github.com/nickel-org/nickel.rs.git)",

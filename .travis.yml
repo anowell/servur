@@ -3,16 +3,16 @@ language: rust
 script:
   - cargo build --verbose
   - cargo test --verbose
-  - gzip target/arest
+  - gzip target/servur
 
 deploy:
   provider: releases
   api-key: $GITHUB_API_TOKEN
-  file: "target/arest.gz"
+  file: "target/servur.gz"
   skip_cleanup: true
   on:
     tags: true
     all_branches: true
 
 after_deploy:
-  - curl --data "build=true" -X POST https://registry.hub.docker.com/u/anowell/arest/trigger/$DOCKER_HUB_TOKEN/
+  - curl --data "build=true" -X POST https://registry.hub.docker.com/u/anowell/servur/trigger/$DOCKER_HUB_TOKEN/
