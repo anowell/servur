@@ -23,13 +23,13 @@ mod controller;
 // Error Handling
 //
 #[derive(Debug)]
-pub enum ArestError {
+pub enum ServurError {
     IoError(old_io::IoError),
 }
 
-impl FromError<old_io::IoError> for ArestError {
-    fn from_error(err: old_io::IoError) -> ArestError {
-        ArestError::IoError(err)
+impl FromError<old_io::IoError> for ServurError {
+    fn from_error(err: old_io::IoError) -> ServurError {
+        ServurError::IoError(err)
     }
 }
 
@@ -65,8 +65,8 @@ impl Application {
 
 
 fn usage() {
-    println!("Usage: arest PROGRAM");
-    println!("  where PROGRAM is th executable to run on POST to /data");
+    println!("Usage: servur PROGRAM");
+    println!("  where PROGRAM is the executable to run on POST to /data");
     env::set_exit_status(1);
 }
 

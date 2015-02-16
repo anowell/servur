@@ -1,7 +1,7 @@
 extern crate http;
 extern crate libc;
 
-use ::{Application, ArestError};
+use ::{Application, ServurError};
 use nickel::{Request, Response};
 use nickel::mimes::MediaType;
 use std::thread::Thread;
@@ -17,7 +17,7 @@ struct MessageResponse<'a> {
 }
 
 pub fn get_hello(_: &Request, response: &mut Response) {
-    response.send("Hello from Arest");
+    response.send("Hello from Servur");
 }
 
 pub fn get_status(_: &Request, response: &mut Response, app: &Application) {
@@ -68,7 +68,7 @@ pub fn post_data(request: &Request, response: &mut Response, app: &Application) 
     //
     // Closure to spawn the runner child
     //
-    let spawn_runner = || -> Result<Process, ArestError> {
+    let spawn_runner = || -> Result<Process, ServurError> {
         // Start child process
         let mut child = try!(Command::new(runner).spawn());
         println!("Started {} with pid: {}", runner, child.id());
@@ -150,7 +150,7 @@ fn pipe_child_output(child: &mut Process) {
       let mut buf = [0u8; PIPE_BUF_SIZE];
       child.stdout.as_mut().unwrap().read(&mut buf).ok();
       // TODO: Pipe both stdout and stderr:
-      //       child.stdout | arest.stdout
-      //       child.stderr | arest.sterr
+      //       child.stdout | servur.stdout
+      //       child.stderr | servur.sterr
       print!("{}", String::from_utf8_lossy(&buf));
 }

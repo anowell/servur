@@ -1,5 +1,5 @@
 [root]
-name = "arest"
+name = "servur"
 version = "0.2.0"
 dependencies = [
  "http 0.1.0-pre (git+https://github.com/nickel-org/rust-http.git)",
