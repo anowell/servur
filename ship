@@ -6,4 +6,4 @@ if [ -d /etc/pre-init.d ]; then
     run-parts -v --exit-on-error --regex '.*' /etc/pre-init.d
 fi
 
-exec /bin/servur $@
+/bin/servur $@
