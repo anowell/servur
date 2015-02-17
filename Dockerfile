@@ -7,7 +7,7 @@ RUN apt-get update && \
 RUN groupadd -r arunner && useradd -m -g arunner arunner
 ADD ship /bin/ship
 
-ENV SERVUR_VERSION 0.3.0
+ENV SERVUR_VERSION 0.3.1
 RUN curl -Lo /bin/servur.gz https://github.com/anowell/servur/releases/download/v$SERVUR_VERSION/servur.gz && \
     gunzip /bin/servur.gz && \
     chmod 755 /bin/servur
