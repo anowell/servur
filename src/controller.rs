@@ -63,6 +63,7 @@ pub fn post_signal(request: &Request, response: &mut Response, app: &Application
 
 pub fn post_data(request: &Request, response: &mut Response, app: &Application) {
     let runner = &*(app.runner);
+    let runner_args = &*(app.runner_args);
     // TODO: fail if busy running another process
 
     //
@@ -70,7 +71,7 @@ pub fn post_data(request: &Request, response: &mut Response, app: &Application) 
     //
     let spawn_runner = || -> Result<Process, ServurError> {
         // Start child process
-        let mut child = try!(Command::new(runner).spawn());
+        let mut child = try!(Command::new(runner).args(runner_args).spawn());
         println!("Started {} with pid: {}", runner, child.id());
         app.set_pid(Some(child.id()));
 

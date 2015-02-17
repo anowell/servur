@@ -40,12 +40,14 @@ impl FromError<old_io::IoError> for ServurError {
 #[derive(Clone)]
 struct Application {
     runner: String,
+    runner_args: Vec<String>,
     pid: Arc<Mutex<Option<pid_t>>>,
 }
 
 #[derive(Clone, RustcEncodable)]
 struct Status {
     runner: String,
+    runner_args: Vec<String>,
     pid: Option<pid_t>
 }
 
@@ -58,6 +60,7 @@ impl Application {
     fn read_status(&self) -> Status {
         Status {
             runner: self.runner.clone(),
+            runner_args: self.runner_args.clone(),
             pid: self.pid.lock().unwrap().clone()
         }
     }
@@ -65,15 +68,20 @@ impl Application {
 
 
 fn usage() {
-    println!("Usage: servur PROGRAM");
+    println!("Usage: servur PROGRAM [PROGRAM_ARGS]");
     println!("  where PROGRAM is the executable to run on POST to /data");
     env::set_exit_status(1);
 }
 
 fn main() {
     let port = 8080;
-    let runner: String = match env::args().nth(1) {
-        Some(arg) => arg,
+
+    // discard args.nth(0), args.nth(1) is the runner
+    // the remaining args are passed to the runner
+    let mut args = env::args();
+    args.next();
+    let (runner, runner_args): (String, Vec<String>) = match args.next() {
+        Some(arg) => (arg, args.collect()),
         None => { usage(); return; }
     };
 
@@ -85,8 +93,8 @@ fn main() {
     let mut server = Nickel::new();
     let app = Application{
         runner: runner,
+        runner_args: runner_args,
         pid: Arc::new(Mutex::new(None)),
-        // status: Arc::new(Mutex::new(Status{ pid: None, started: None })),
     };
 
     // Helpers to create routes: stateless (req_handler) and stateful (app_handler)
