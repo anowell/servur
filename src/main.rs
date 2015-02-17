@@ -109,5 +109,5 @@ fn main() {
 
     // Start the server
     println!("Listening on port {}", port);
-    server.listen(Ipv4Addr(127, 0, 0, 1), port);
+    server.listen(Ipv4Addr(0, 0, 0, 0), port);
 }
