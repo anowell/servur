@@ -35,7 +35,7 @@ Get's the status of Servur. The response includes the configured runner and it's
 
 ----------
 
-### POST /data
+### POST /run
 Posts any arbitrary body that will be passed into the runner as STDIN. Returns as soon as the runner has started.
 
 TODO: The request should fail if the runner is already processing data.

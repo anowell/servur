@@ -14,7 +14,6 @@ use std::error::FromError;
 use std::sync::{Arc,Mutex};
 use nickel::router::http_router::HttpRouter;
 use nickel::{Nickel, Request, Response};
-// use rustc_serialize::json;
 use libc::pid_t;
 
 mod controller;
@@ -69,7 +68,7 @@ impl Application {
 
 fn usage() {
     println!("Usage: servur PROGRAM [PROGRAM_ARGS]");
-    println!("  where PROGRAM is the executable to run on POST to /data");
+    println!("  where PROGRAM is the executable to run on POST to /run");
     env::set_exit_status(1);
 }
 
@@ -81,6 +80,7 @@ fn main() {
     let mut args = env::args();
     args.next();
     let (runner, runner_args): (String, Vec<String>) = match args.next() {
+        Some(ref arg) if *arg == "-h" || *arg == "--help" => { usage(); return; },
         Some(arg) => (arg, args.collect()),
         None => { usage(); return; }
     };
@@ -104,7 +104,7 @@ fn main() {
     // App routing
     server.get("/",                     req_handler(controller::get_hello));
     server.get("/status",               app_handler(controller::get_status));
-    server.post("/data",                app_handler(controller::post_data));
+    server.post("/run",                 app_handler(controller::post_run));
     server.post("/signal/:signal",      app_handler(controller::post_signal));
 
     // Start the server

@@ -62,7 +62,7 @@ pub fn post_signal(request: &Request, response: &mut Response, app: &Application
 }
 
 
-pub fn post_data(request: &Request, response: &mut Response, app: &Application) {
+pub fn post_run(request: &Request, response: &mut Response, app: &Application) {
     let runner = &*(app.runner);
     let runner_args = &*(app.runner_args);
     // TODO: fail if busy running another process
