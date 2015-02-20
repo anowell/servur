@@ -44,7 +44,7 @@ TODO: The request should fail if the runner is already processing data.
 
     202 (OK)
     {
-        "message": "Successfully signaled 'wc' with SIGKILL"
+        "message": "Running 'wc'"
     }
 
 ----------
