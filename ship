@@ -2,8 +2,12 @@
 
 set -e
 
-if [ -d /etc/pre-init.d ]; then
-    run-parts -v --exit-on-error --regex '.*' /etc/pre-init.d
+if [ -z "$SKIP_BOOTSTRAP" ] && [ -d /etc/bootstrap.d ]; then
+    run-parts -v --exit-on-error --regex '.*' /etc/bootstrap.d
+    echo "Finished bootstrap."
 fi
 
-/bin/servur $@
+if [ "$1" != "bootstrap" ]; then
+    /bin/servur $@
+fi
+
