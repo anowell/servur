@@ -9,6 +9,57 @@ It's not particularly interesting alone, but it becomes interesting when you bui
 - [servur-ruby](https://github.com/anowell/servur-ruby)
 - [servur-jar](https://github.com/anowell/servur-jar)
 
+## Servur API
+
+### GET /
+Simple hello to verify servur is running.
+
+#### Response:
+
+    200 (OK)
+    Hello from Servur
+
+----------
+
+### GET /status
+Get's the status of Servur. The response includes the configured runner and it's args, and if the runner is running, it will respond with the runner's PID.
+
+#### Response:
+
+    200 (OK)
+    {
+        "runner": "wc",
+        "runner_args": "-l"
+        "pid": 1234
+    }
+
+----------
+
+### POST /data
+Posts any arbitrary body that will be passed into the runner as STDIN. Returns as soon as the runner has started.
+
+TODO: The request should fail if the runner is already processing data.
+
+#### Response:
+
+    202 (OK)
+    {
+        "message": "Successfully signaled 'wc' with SIGKILL"
+    }
+
+----------
+
+### POST /signal/:signal
+Signals the runner (if running) with a specifix UNIX signal. Supports term, kill, and stop.
+
+#### Response
+
+    200 (OK)
+    {
+        "message": "Successfully signaled 'wc' with SIGKILL"
+    }
+
+
 ## Usage
 The docker image is published to [anowell/servur](https://registry.hub.docker.com/u/anowell/servur/) on the Docker Hub.
 

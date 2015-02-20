@@ -4,11 +4,12 @@ extern crate libc;
 use ::{Application, ServurError};
 use nickel::{Request, Response};
 use nickel::mimes::MediaType;
+use std::ascii::AsciiExt;
 use std::thread::Thread;
 use std::old_io::process::{Process, Command, ProcessExit};
 use rustc_serialize::json;
 
-const PIPE_BUF_SIZE: usize = 4096; // max bytes read per interval
+const PIPE_BUF_SIZE: usize = 4096; // max stdout bytes read per interval
 const PIPE_INTERVAL: u64 = 500; // ms between checking stdout
 
 #[derive(RustcEncodable)]
@@ -31,8 +32,8 @@ pub fn post_signal(request: &Request, response: &mut Response, app: &Application
     response.content_type(MediaType::Json);
 
     // Determine signal integer
-    let signal_param = request.param("signal");
-    let message = match signal_from_str(signal_param) {
+    let signal_param = request.param("signal").to_ascii_uppercase();
+    let message = match signal_from_str(&*signal_param) {
         Ok(signal) => {
             // Send the signal to the process
             // TODO: make sure the pid is set - currently the unwrap here panics if pid.is_none()
@@ -40,19 +41,19 @@ pub fn post_signal(request: &Request, response: &mut Response, app: &Application
             match Process::kill(pid, signal) {
                 Ok(_) => {
                     response.status_code(http::status::Accepted);
-                    format!("Successfully signaled {} with {}", pid, signal_param)
+                    format!("Successfully signaled '{}' with SIG{}", pid, signal_param)
                 },
                 Err(desc) => {
                     println!("post_signal: {}", desc);
                     response.status_code(http::status::InternalServerError);
-                    format!("Error signaling {} with {}: {:?}", pid, signal_param, desc)
+                    format!("Error signaling '{}' with SIG{}: {:?}", pid, signal_param, desc)
                 }
             }
         }
         Err(desc) => {
             println!("post_signal: {}", desc);
             response.status_code(http::status::BadRequest);
-            format!("Error prevented signalling {}: {}", app.runner, desc)
+            format!("Error prevented signalling '{}': {}", app.runner, desc)
         }
     };
 
@@ -137,11 +138,11 @@ pub fn post_data(request: &Request, response: &mut Response, app: &Application) 
 fn signal_from_str(signal: &str) -> Result<isize, String> {
     match signal {
         // SIGTERM: terminate process (i.e. default kill)
-        "term" => Ok(libc::SIGTERM as isize),
+        "TERM" => Ok(libc::SIGTERM as isize),
         // SIGKILL: immediately kill process (i.e. kill -9)
-        "kill" => Ok(libc::SIGKILL as isize),
+        "KILL" => Ok(libc::SIGKILL as isize),
         // SIGQUIT: quit and perform core dump
-        "quit" => Ok(libc::consts::os::posix88::SIGQUIT as isize),
+        "QUIT" => Ok(libc::consts::os::posix88::SIGQUIT as isize),
         // Error for all other signals
         unknown => Err(format!("invalid signal: {}", unknown)),
     }
