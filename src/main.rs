@@ -1,7 +1,7 @@
 #![feature(env)]
 #![feature(io)]
+#![feature(old_io)]
 #![feature(libc)]
-#![feature(std_misc)]
 
 extern crate nickel;
 extern crate libc;

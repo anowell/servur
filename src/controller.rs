@@ -5,7 +5,7 @@ use ::{Application, ServurError};
 use nickel::{Request, Response};
 use nickel::mimes::MediaType;
 use std::ascii::AsciiExt;
-use std::thread::Thread;
+use std::thread;
 use std::old_io::process::{Process, Command, ProcessExit};
 use rustc_serialize::json;
 
@@ -121,7 +121,7 @@ pub fn post_run(request: &Request, response: &mut Response, app: &Application) {
         },
         Ok(mut child) => {
             response.status_code(http::status::Accepted);
-            Thread::spawn(move || wait_with_tail(&mut child));
+            thread::spawn(move || wait_with_tail(&mut child));
             format!("Running {}", runner)
         },
     };
