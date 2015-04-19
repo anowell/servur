@@ -1,4 +1,3 @@
-extern crate http;
 extern crate libc;
 
 use ::{Application, ServurError};

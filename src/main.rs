@@ -5,12 +5,10 @@
 
 extern crate nickel;
 extern crate libc;
-extern crate "rustc-serialize" as rustc_serialize;
+extern crate rustc_serialize;
 
 use std::env;
-use std::old_io;
-use std::old_io::net::ip::Ipv4Addr;
-use std::error::FromError;
+use std::net::Ipv4Addr;
 use std::sync::{Arc,Mutex};
 use nickel::router::http_router::HttpRouter;
 use nickel::{Nickel, Request, Response};
@@ -26,8 +24,8 @@ pub enum ServurError {
     IoError(old_io::IoError),
 }
 
-impl FromError<old_io::IoError> for ServurError {
-    fn from_error(err: old_io::IoError) -> ServurError {
+impl From<old_io::IoError> for ServurError {
+    fn from(err: old_io::IoError) -> ServurError {
         ServurError::IoError(err)
     }
 }
