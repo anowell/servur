@@ -1,17 +1,15 @@
-#![feature(env)]
-#![feature(io)]
-#![feature(old_io)]
 #![feature(libc)]
 
 extern crate nickel;
 extern crate libc;
 extern crate rustc_serialize;
 
+use std::io;
 use std::env;
-use std::net::Ipv4Addr;
+use std::net::{Ipv4Addr, SocketAddrV4};
 use std::sync::{Arc,Mutex};
 use nickel::router::http_router::HttpRouter;
-use nickel::{Nickel, Request, Response};
+use nickel::{Nickel, Request, Response, MiddlewareResult};
 use libc::pid_t;
 
 mod controller;
@@ -21,11 +19,12 @@ mod controller;
 //
 #[derive(Debug)]
 pub enum ServurError {
-    IoError(old_io::IoError),
+    Generic(String),
+    IoError(io::Error),
 }
 
-impl From<old_io::IoError> for ServurError {
-    fn from(err: old_io::IoError) -> ServurError {
+impl From<io::Error> for ServurError {
+    fn from(err: io::Error) -> ServurError {
         ServurError::IoError(err)
     }
 }
@@ -35,7 +34,7 @@ impl From<old_io::IoError> for ServurError {
 // Shared Application State
 //
 #[derive(Clone)]
-struct Application {
+pub struct Application {
     runner: String,
     runner_args: Vec<String>,
     pid: Arc<Mutex<Option<pid_t>>>,
@@ -67,7 +66,7 @@ impl Application {
 fn usage() {
     println!("Usage: servur PROGRAM [PROGRAM_ARGS]");
     println!("  where PROGRAM is the executable to run on POST to /run");
-    env::set_exit_status(1);
+    std::process::exit(1);
 }
 
 fn main() {
@@ -84,8 +83,8 @@ fn main() {
     };
 
     // Convenience types
-    type ReqHandler = fn(&Request, &mut Response);
-    type AppHandler = fn(&Request, &mut Response, &Application);
+    type ReqHandler = for <'a> fn(&mut Request, Response<'a>) -> MiddlewareResult<'a>;
+    type AppHandler = for <'a> fn(&mut Request, Response<'a>, &Application) -> MiddlewareResult<'a>;
 
     // Initialize server and application state
     let mut server = Nickel::new();
@@ -107,5 +106,5 @@ fn main() {
 
     // Start the server
     println!("Listening on port {}", port);
-    server.listen(Ipv4Addr(0, 0, 0, 0), port);
+    server.listen(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), port));
 }
